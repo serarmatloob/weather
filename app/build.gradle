@@ -25,16 +25,29 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:' + rootProject.constraintlayoutVersion;
     implementation 'androidx.recyclerview:recyclerview:' + rootProject.androidxLibVersion;
     implementation 'com.google.android.material:material:1.0.0';
+    implementation 'com.google.code.gson:gson:' + rootProject.gsonVersion;
+    implementation 'com.android.volley:volley:1.1.1'
 
     //espresso and testing
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.1.0'
     testImplementation 'junit:junit:4.12'
-    testImplementation 'com.google.truth:truth:' + rootProject.truthVersion;
-    testImplementation 'org.hamcrest:hamcrest-library:' + rootProject.hamcrestVersion;
+    testImplementation 'org.json:json:20140107'
+
+    // Core library
+    androidTestImplementation 'androidx.test:core:' + rootProject.coreVersion;
+    // Assertions
+    androidTestImplementation 'androidx.test.ext:junit:' + rootProject.extJUnitVersion;
+    androidTestImplementation 'androidx.test.ext:truth:' + rootProject.extTruthVersion;
+    androidTestImplementation 'androidx.test.uiautomator:uiautomator:' + rootProject.uiautomatorVersion;
+    androidTestImplementation 'com.google.truth:truth:' + rootProject.truthVersion;
+
+    debugImplementation 'androidx.fragment:fragment-testing:' + rootProject.androidxFragmentVersion;
     androidTestImplementation 'androidx.test:rules:' + rootProject.rulesVersion;
     androidTestImplementation 'androidx.test:runner:' + rootProject.runnerVersion;
     androidTestImplementation 'androidx.test.espresso:espresso-core:' + rootProject.espressoVersion;
     androidTestImplementation 'androidx.test.espresso:espresso-intents:' + rootProject.espressoVersion;
 
     //espresso idling resource
-    implementation 'androidx.test.espresso:espresso-idling-resource:'+ rootProject.espressoVersion;
+    implementation 'androidx.test.espresso:espresso-idling-resource:' + rootProject.espressoVersion;
 }

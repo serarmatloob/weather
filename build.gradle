@@ -27,14 +27,14 @@ ext {
     androidxCompatVersion = "1.1.0"
     androidxLibVersion = "1.0.0"
     coreVersion = "1.2.0"
-    extJUnitVersion = "1.1.0"
+    extJUnitVersion = "1.1.1"
     extTruthVersion = "1.2.0"
     uiautomatorVersion = "2.2.0"
     runnerVersion = "1.2.0"
     rulesVersion = "1.2.0"
     espressoVersion = "3.2.0"
-    androidxFragmentVersion = "1.1.0"
-    truthVersion = "1.0"
+    androidxFragmentVersion = "1.2.0"
+    truthVersion = "0.42"
     gsonVersion = "2.8.5"
 }
 

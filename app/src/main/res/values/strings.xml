@@ -5,4 +5,11 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="ok">OK</string>
+    <string name="yes">YES</string>
+    <string name="cancel">CANCEL</string>
+
+    <string name="permissions_required_message">These Permissions are required for Weather</string>
+    <string name="permissions_required_long_message">You need to give some mandatory permissions to continue. Do you want to go to app settings?</string>
+    <string name="weather_access_permissions">Weather need location permission. Please give access!</string>
 </resources>

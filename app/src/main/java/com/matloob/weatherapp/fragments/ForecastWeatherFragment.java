@@ -14,13 +14,18 @@ import com.matloob.weatherapp.R;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class WeekFragment extends Fragment {
-    private static WeekFragment weekFragment;
-    public static WeekFragment getInstance() {
-        return weekFragment != null ? weekFragment : new WeekFragment();
+public class ForecastWeatherFragment extends Fragment {
+
+    private static ForecastWeatherFragment forecastWeatherFragment;
+
+    public static ForecastWeatherFragment getInstance() {
+        if (forecastWeatherFragment == null) {
+            forecastWeatherFragment = new ForecastWeatherFragment();
+        }
+        return forecastWeatherFragment;
     }
 
-    public WeekFragment() {
+    public ForecastWeatherFragment() {
         // Required empty public constructor
     }
 
@@ -28,7 +33,7 @@ public class WeekFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_week, container, false);
+        return inflater.inflate(R.layout.fragment_forecast_weather, container, false);
     }
 
 }

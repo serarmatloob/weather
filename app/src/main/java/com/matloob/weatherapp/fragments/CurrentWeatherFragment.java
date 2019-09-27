@@ -12,17 +12,21 @@ import android.view.ViewGroup;
 
 import com.matloob.weatherapp.R;
 
-public class TodayFragment extends Fragment {
+public class CurrentWeatherFragment extends Fragment {
 
-    private static TodayFragment todayFragment;
-    public static TodayFragment getInstance() {
-        return todayFragment != null ? todayFragment : new TodayFragment();
+    private static CurrentWeatherFragment currentWeatherFragment;
+
+    public static CurrentWeatherFragment getInstance() {
+        if (currentWeatherFragment == null) {
+            currentWeatherFragment = new CurrentWeatherFragment();
+        }
+        return currentWeatherFragment;
     }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_today, container, false);
+        return inflater.inflate(R.layout.fragment_current_weather, container, false);
     }
 
 }

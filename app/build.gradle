@@ -1,11 +1,11 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     defaultConfig {
         applicationId "com.matloob.weatherapp"
         minSdkVersion 23
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -15,6 +15,32 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    task revokeAllPermissions() {
+        doLast {
+            revokeAllPermissions()
+        }
+    }
+}
+
+void revokeAllPermissions() {
+    def rootDir = project.rootDir
+    def adb = ""
+    def localProperties = new File(rootDir, "local.properties")
+    if (localProperties.exists()) {
+        Properties properties = new Properties()
+        localProperties.withInputStream {
+            instr -> properties.load(instr)
+        }
+        def sdkDir = properties.getProperty('sdk.dir')
+        adb = "$sdkDir/platform-tools/adb"
+    }
+    exec {
+        commandLine "$adb", 'shell', 'pm', 'revoke', 'com.matloob.weatherapp', 'android.permission.ACCESS_COARSE_LOCATION'
+    }
+    exec {
+        commandLine "$adb", 'shell', 'pm', 'revoke', 'com.matloob.weatherapp', 'android.permission.ACCESS_FINE_LOCATION'
     }
 }
 
@@ -42,7 +68,10 @@ dependencies {
     androidTestImplementation 'androidx.test.uiautomator:uiautomator:' + rootProject.uiautomatorVersion;
     androidTestImplementation 'com.google.truth:truth:' + rootProject.truthVersion;
 
-    debugImplementation 'androidx.fragment:fragment-testing:' + rootProject.androidxFragmentVersion;
+    debugImplementation 'androidx.test.espresso:espresso-idling-resource:3.3.0-alpha02'
+    debugImplementation("androidx.fragment:fragment-testing:1.2.0-alpha03", {
+        exclude group: 'androidx.test', module: 'core'
+    })
     androidTestImplementation 'androidx.test:rules:' + rootProject.rulesVersion;
     androidTestImplementation 'androidx.test:runner:' + rootProject.runnerVersion;
     androidTestImplementation 'androidx.test.espresso:espresso-core:' + rootProject.espressoVersion;

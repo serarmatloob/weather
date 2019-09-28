@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">Weather App</string>
     <string name="title_today">TODAY</string>
     <string name="title_week">5 DAYS</string>
@@ -7,9 +7,12 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="ok">OK</string>
     <string name="yes">YES</string>
-    <string name="cancel">CANCEL</string>
+    <string name="cancel">Cancel</string>
 
     <string name="permissions_required_message">These Permissions are required for Weather</string>
     <string name="permissions_required_long_message">You need to give some mandatory permissions to continue. Do you want to go to app settings?</string>
     <string name="weather_access_permissions">Weather need location permission. Please give access!</string>
+
+    <string name="weather_service_api_key">4cd3a2cf30fd1623709ec44fce44962a</string>
+    <string name="weather_endpoint">http://api.openweathermap.org/data/2.5/%1$s?lat=%2$f&amp;lon=%3$f&amp;appid=%4$s</string>
 </resources>

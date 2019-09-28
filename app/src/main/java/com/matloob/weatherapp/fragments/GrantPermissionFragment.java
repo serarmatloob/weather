@@ -9,19 +9,18 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-
 import android.provider.Settings;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
 
 import com.matloob.weatherapp.Application;
 import com.matloob.weatherapp.R;
@@ -36,15 +35,16 @@ import java.util.Map;
  */
 public class GrantPermissionFragment extends Fragment {
 
+    public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 123;
     //TAG
     private static final String TAG = "GrantPermissionFragment";
-
-    private static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 123;
-    private MainActivity mainActivity;
-
     private static GrantPermissionFragment grantPermissionFragment;
-
+    private MainActivity mainActivity;
     private ArrayList<String> listPermissionsNeeded;
+
+    public GrantPermissionFragment() {
+        // Required empty public constructor
+    }
 
     public static GrantPermissionFragment getInstance() {
         if (grantPermissionFragment == null) {
@@ -52,11 +52,6 @@ public class GrantPermissionFragment extends Fragment {
         }
         return grantPermissionFragment;
     }
-
-    public GrantPermissionFragment() {
-        // Required empty public constructor
-    }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

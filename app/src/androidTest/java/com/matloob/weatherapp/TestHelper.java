@@ -25,22 +25,17 @@ public class TestHelper {
             boolean isPermissionGranted = activity.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED;
             if (!isPermissionGranted) {
                 if (Build.VERSION.SDK_INT >= 29) {
-                    // Allow permission button in Android default permission dialog. Use index 0 for the Deny button.
-//                    UiObject allowPermissions = device.findObject(new UiSelector().clickable(true).checkable(false).index(1));
-                    // Or
-                    interactWithDialog(grant ? "Allow only while using the app": "Deny");
+                    // interact with dialog assuming allow or deny button names are known.
+                    // If first choice does not exist, use alternative button name.
+                    interactWithDialog(grant ? "Allow only while using the app" : "Deny", grant ? "Allow" : null);
                     // Wait for dialog
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }
-                else if (Build.VERSION.SDK_INT >= 23) {
-                    // Allow permission button in Android default permission dialog. Use index 0 for the Deny button.
-//                    UiObject allowPermissions = device.findObject(new UiSelector().clickable(true).checkable(false).index(1));
-                    // Or
-                    interactWithDialog(grant ? "Allow": "Deny");
+                } else if (Build.VERSION.SDK_INT >= 23) {
+                    interactWithDialog(grant ? "Allow" : "Deny", null);
                     // Wait for dialog
                     try {
                         Thread.sleep(1000);
@@ -54,10 +49,10 @@ public class TestHelper {
         }
     }
 
-    public static void interactWithDialog(String btnName) throws Exception{
+    private static void interactWithDialog(String btnName, String alternative) throws Exception {
         // Click ok on the dialog
         UiDevice device = UiDevice.getInstance(getInstrumentation());
-        UiObject positiveBtn = device.findObject(new UiSelector().text(btnName)).exists()? device.findObject(new UiSelector().text(btnName)) : device.findObject(new UiSelector().text(btnName.toUpperCase()));
+        UiObject positiveBtn = device.findObject(new UiSelector().text(btnName)).exists() ? device.findObject(new UiSelector().text(btnName)) : device.findObject(new UiSelector().text(btnName.toUpperCase()));
         if (positiveBtn.exists()) {
             try {
                 positiveBtn.click();
@@ -65,6 +60,8 @@ public class TestHelper {
             } catch (UiObjectNotFoundException e) {
                 Log.e("interactWithDialog", "There is no dialog or dialog button to interact with " + e);
             }
+        } else if (alternative != null) {
+            interactWithDialog(alternative, null);
         } else {
             throw new Exception("There is no dialog or dialog button to interact with");
         }

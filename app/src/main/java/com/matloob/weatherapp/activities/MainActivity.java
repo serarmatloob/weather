@@ -1,5 +1,9 @@
 package com.matloob.weatherapp.activities;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,6 +26,9 @@ import com.matloob.weatherapp.fragments.ForecastWeatherFragment;
 import com.matloob.weatherapp.fragments.GrantPermissionFragment;
 import com.matloob.weatherapp.utils.SharedPreferencesUtil;
 
+import static android.net.ConnectivityManager.CONNECTIVITY_ACTION;
+import static com.matloob.weatherapp.fragments.GrantPermissionFragment.allPermissionsGranted;
+
 /**
  * Created by Serar Matloob on 9/26/2019
  */
@@ -42,15 +49,35 @@ public class MainActivity extends AppCompatActivity {
 
             switch (item.getItemId()) {
                 case R.id.navigation_current_weather:
-                    selectedFragment = CurrentWeatherFragment.getInstance();
+                    selectedFragment = getSupportFragmentManager().findFragmentByTag(CurrentWeatherFragment.class.getSimpleName());
+                    if(selectedFragment == null){
+                        selectedFragment  = new CurrentWeatherFragment();
+                    }
                     break;
                 case R.id.navigation_forecast_weather:
-                    selectedFragment = ForecastWeatherFragment.getInstance();
+                    selectedFragment = getSupportFragmentManager().findFragmentByTag(ForecastWeatherFragment.class.getSimpleName());
+                    if(selectedFragment == null){
+                        selectedFragment  = new ForecastWeatherFragment();
+                    }
                     break;
             }
 
             transitionToFragment(selectedFragment);
             return true;
+        }
+    };
+
+    private MainCallback mainCallback;
+
+    /**
+     * Broadcast to listen for connectivity changes so that fragments can update
+     */
+    private BroadcastReceiver mConnectionChangedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(mainCallback != null){
+                mainCallback.onConnectionChanged();
+            }
         }
     };
 
@@ -68,10 +95,14 @@ public class MainActivity extends AppCompatActivity {
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
 
         if (savedInstanceState == null) {
-            if (GrantPermissionFragment.getInstance().allPermissionsGranted()) {
+            if (allPermissionsGranted()) {
                 navigation.setVisibility(View.VISIBLE);
                 //Manually displaying the first fragment - one Time only
-                transitionToFragment(CurrentWeatherFragment.getInstance());
+                Fragment currentWeather = getSupportFragmentManager().findFragmentByTag(CurrentWeatherFragment.class.getSimpleName());
+                if(currentWeather == null){
+                    currentWeather  = new CurrentWeatherFragment();
+                }
+                transitionToFragment(currentWeather);
             }
         }
     }
@@ -85,20 +116,35 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         requestPermissionsIfNeeded();
+        registerReceiver(mConnectionChangedReceiver, new IntentFilter(CONNECTIVITY_ACTION));
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(mConnectionChangedReceiver);
     }
 
     private void requestPermissionsIfNeeded() {
         // If permissions not granted, move to grant permissions fragment.
-        if (!GrantPermissionFragment.getInstance().allPermissionsGranted()) {
-            transitionToFragment(GrantPermissionFragment.getInstance());
+        if (!allPermissionsGranted()) {
+            Fragment grantPermissionFragment = getSupportFragmentManager().findFragmentByTag(GrantPermissionFragment.class.getSimpleName());
+            if(grantPermissionFragment == null){
+                grantPermissionFragment  = new GrantPermissionFragment();
+            }
+            transitionToFragment(grantPermissionFragment);
             return;
         }
         // Before transitioning to target fragment, check the current fragment.
         Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
 
         // If current fragment is grant permissions fragment, but all permissions were granted, then make the target fragment CurrentWeatherFragment.
-        if (currentFragment instanceof GrantPermissionFragment && GrantPermissionFragment.getInstance().allPermissionsGranted()) {
-            transitionToFragment(CurrentWeatherFragment.getInstance());
+        if (currentFragment instanceof GrantPermissionFragment && allPermissionsGranted()) {
+            Fragment currentWeather = getSupportFragmentManager().findFragmentByTag(CurrentWeatherFragment.class.getSimpleName());
+            if(currentWeather == null){
+                currentWeather  = new CurrentWeatherFragment();
+            }
+            transitionToFragment(currentWeather);
 
             // set the first view checked.
             navigation.getMenu().getItem(0).setChecked(true);
@@ -123,18 +169,30 @@ public class MainActivity extends AppCompatActivity {
         }
         // Show bottom nav view if fragment was not grant permissions fragment
         if (!(targetFragment instanceof GrantPermissionFragment)) {
-            navigation.setVisibility(View.VISIBLE);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    navigation.setVisibility(View.VISIBLE);
+                }
+            });
         } else {
-            navigation.setVisibility(View.GONE);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    navigation.setVisibility(View.GONE);
+                }
+            });
+
         }
     }
 
     /**
      * This function retrieve last location from Google location services
      *
-     * @param locationCallback {@link LocationCallback} to notify the client
+     * @param mainCallback {@link MainCallback} to notify the client
      */
-    public void fetchAndSaveLastKnownLocation(final LocationCallback locationCallback) {
+    public void fetchAndSaveLastKnownLocation(final MainCallback mainCallback) {
+        this.mainCallback = mainCallback;
         FusedLocationProviderClient fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, new OnSuccessListener<Location>() {
@@ -146,8 +204,8 @@ public class MainActivity extends AppCompatActivity {
                             SharedPreferencesUtil.getInstance().setDoublePreference(Application.getInstance(), SharedPreferencesUtil.PREF_LAST_LONG, location.getLongitude());
                             SharedPreferencesUtil.getInstance().setDoublePreference(Application.getInstance(), SharedPreferencesUtil.PREF_LAST_LAT, location.getLatitude());
                             // update callback
-                            if (locationCallback != null) {
-                                locationCallback.onLocationUpdated(location);
+                            if (mainCallback != null) {
+                                mainCallback.onLocationUpdated(location);
                             }
                         }
                     }
@@ -157,8 +215,9 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Location callback interface for fragments
      */
-    public interface LocationCallback {
+    public interface MainCallback {
         void onLocationUpdated(Location location);
+        void onConnectionChanged();
     }
 
 }

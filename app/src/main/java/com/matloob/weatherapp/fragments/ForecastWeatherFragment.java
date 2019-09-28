@@ -32,11 +32,9 @@ import static com.matloob.weatherapp.services.WeatherService.REQUEST_TYPE_FORECA
 /**
  * A simple {@link Fragment} subclass.
  */
-public class ForecastWeatherFragment extends Fragment implements ServiceConnection, WeatherService.WeatherCallback, MainActivity.LocationCallback {
+public class ForecastWeatherFragment extends Fragment implements ServiceConnection, WeatherService.WeatherCallback, MainActivity.MainCallback {
     // TAG
     private static final String TAG = "ForecastWeatherFragment";
-    // Fragment instance
-    private static ForecastWeatherFragment forecastWeatherFragment;
     // Main activity instance
     private MainActivity mainActivity;
     // Weather service instance
@@ -46,13 +44,6 @@ public class ForecastWeatherFragment extends Fragment implements ServiceConnecti
 
     public ForecastWeatherFragment() {
         // Required empty public constructor
-    }
-
-    public static ForecastWeatherFragment getInstance() {
-        if (forecastWeatherFragment == null) {
-            forecastWeatherFragment = new ForecastWeatherFragment();
-        }
-        return forecastWeatherFragment;
     }
 
     @Override
@@ -72,6 +63,11 @@ public class ForecastWeatherFragment extends Fragment implements ServiceConnecti
         bundle.putInt(EXTRA_WEATHER_REQUEST_TYPE_KEY, REQUEST_TYPE_FORECAST);
         serviceIntent.putExtras(bundle);
         Application.getInstance().startService(serviceIntent);
+    }
+
+    @Override
+    public void onConnectionChanged() {
+        mainActivity.fetchAndSaveLastKnownLocation(ForecastWeatherFragment.this);
     }
 
     @Override

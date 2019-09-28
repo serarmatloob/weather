@@ -72,17 +72,17 @@ public class MainActivityTest {
     @Test
     public void testInternalSwitchingBetweenFragments() {
 
-        mainActivity.transitionToFragment(GrantPermissionFragment.getInstance());
-
-        onView(withId(R.id.grant_permissions_container)).check(matches(isDisplayed()));
-
-        mainActivity.transitionToFragment(CurrentWeatherFragment.getInstance());
+        mainActivity.transitionToFragment(new CurrentWeatherFragment());
 
         onView(withId(R.id.current_weather_container)).check(matches(isDisplayed()));
 
-        mainActivity.transitionToFragment(ForecastWeatherFragment.getInstance());
+        mainActivity.transitionToFragment(new ForecastWeatherFragment());
 
         onView(withId(R.id.forecast_weather_container)).check(matches(isDisplayed()));
+
+                mainActivity.transitionToFragment(new GrantPermissionFragment());
+
+        onView(withId(R.id.grant_permissions_container)).check(matches(isDisplayed()));
     }
 
     /**

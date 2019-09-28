@@ -38,19 +38,12 @@ public class GrantPermissionFragment extends Fragment {
     public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 123;
     //TAG
     private static final String TAG = "GrantPermissionFragment";
-    private static GrantPermissionFragment grantPermissionFragment;
+
     private MainActivity mainActivity;
-    private ArrayList<String> listPermissionsNeeded;
+    private static ArrayList<String> listPermissionsNeeded;
 
     public GrantPermissionFragment() {
         // Required empty public constructor
-    }
-
-    public static GrantPermissionFragment getInstance() {
-        if (grantPermissionFragment == null) {
-            grantPermissionFragment = new GrantPermissionFragment();
-        }
-        return grantPermissionFragment;
     }
 
     @Override
@@ -82,7 +75,7 @@ public class GrantPermissionFragment extends Fragment {
         });
     }
 
-    public boolean allPermissionsGranted() {
+    public static boolean allPermissionsGranted() {
         int access_fine_location = ContextCompat.checkSelfPermission(Application.getInstance(), Manifest.permission.ACCESS_FINE_LOCATION);
         int access_coarse_location = ContextCompat.checkSelfPermission(Application.getInstance(), Manifest.permission.ACCESS_COARSE_LOCATION);
 
@@ -122,7 +115,11 @@ public class GrantPermissionFragment extends Fragment {
                     Log.d(TAG, "Permissions granted");
 
                     // transition to current weather fragment
-                    mainActivity.transitionToFragment(CurrentWeatherFragment.getInstance());
+                    Fragment currentWeather = mainActivity.getSupportFragmentManager().findFragmentByTag(CurrentWeatherFragment.class.getSimpleName());
+                    if(currentWeather == null){
+                        currentWeather  = new CurrentWeatherFragment();
+                    }
+                    mainActivity.transitionToFragment(currentWeather);
 
                 } else {
                     Log.d(TAG, "Some permissions are not granted ask again ");

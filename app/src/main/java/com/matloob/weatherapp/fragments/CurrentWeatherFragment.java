@@ -7,11 +7,16 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,28 +34,36 @@ import static com.matloob.weatherapp.services.WeatherService.EXTRA_WEATHER_LOCAT
 import static com.matloob.weatherapp.services.WeatherService.EXTRA_WEATHER_REQUEST_TYPE_KEY;
 import static com.matloob.weatherapp.services.WeatherService.REQUEST_TYPE_CURRENT;
 
-public class CurrentWeatherFragment extends Fragment implements ServiceConnection, WeatherService.WeatherCallback, MainActivity.LocationCallback {
+public class CurrentWeatherFragment extends Fragment implements ServiceConnection, WeatherService.WeatherCallback, MainActivity.MainCallback {
     //TAG
     private static final String TAG = "CurrentWeatherFragment";
 
-    private static CurrentWeatherFragment currentWeatherFragment;
     private boolean bound = false;
 
     private MainActivity mainActivity;
 
     private WeatherService weatherService;
 
-    public static CurrentWeatherFragment getInstance() {
-        if (currentWeatherFragment == null) {
-            currentWeatherFragment = new CurrentWeatherFragment();
-        }
-        return currentWeatherFragment;
-    }
+    private View view;
+    private ProgressBar progressBar;
+    private LinearLayout currentWeatherLayout;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_current_weather, container, false);
+        view = inflater.inflate(R.layout.fragment_current_weather, container, false);
+
+        return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        progressBar = view.findViewById(R.id.progress_bar);
+        progressBar.setVisibility(View.VISIBLE);
+        currentWeatherLayout = view.findViewById(R.id.current_weather_layout);
+        currentWeatherLayout.setVisibility(View.GONE);
     }
 
     @Override
@@ -66,6 +79,11 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
         bundle.putInt(EXTRA_WEATHER_REQUEST_TYPE_KEY, REQUEST_TYPE_CURRENT);
         serviceIntent.putExtras(bundle);
         Application.getInstance().startService(serviceIntent);
+    }
+
+    @Override
+    public void onConnectionChanged() {
+        mainActivity.fetchAndSaveLastKnownLocation(CurrentWeatherFragment.this);
     }
 
     @Override
@@ -113,7 +131,10 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
 
         if (currentWeatherModel != null) {
             Log.i(TAG, "onWeatherResultReady: " + currentWeatherModel.getMain().getTemp());
+            updateUI(currentWeatherModel);
         }
+
+
     }
 
     @Override
@@ -133,4 +154,22 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
     public void onServiceDisconnected(ComponentName componentName) {
         bound = false;
     }
+
+    public void updateUI(final CurrentWeatherModel model) {
+        Handler updateUiHandler = new Handler(Looper.getMainLooper());
+        updateUiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                TextView temperature = view.findViewById(R.id.current_temp);
+                TextView humidity = view.findViewById(R.id.current_humidity);
+                TextView pressure = view.findViewById(R.id.current_pressure);
+                temperature.setText(getString(R.string.temperature, (int) model.getMain().getTemp()));
+                humidity.setText(getString(R.string.current_humidity,(int) model.getMain().getHumidity()));
+                pressure.setText(getString(R.string.current_pressure, (int) model.getMain().getPressure()));
+                progressBar.setVisibility(View.GONE);
+                currentWeatherLayout.setVisibility(View.VISIBLE);
+            }
+        });
+    }
+
 }

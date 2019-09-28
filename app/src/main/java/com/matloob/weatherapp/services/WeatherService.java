@@ -28,7 +28,9 @@ public class WeatherService extends Service {
     private int requestType = -1;
     // binder
     private IBinder binder = new WeatherServiceBinder();
+    // callback
     private WeatherCallback weatherCallback;
+
     public WeatherService() {
     }
 
@@ -110,8 +112,8 @@ public class WeatherService extends Service {
                 }
             }
         });
-        // accept only request types 0 and 1
-        if (requestType != -1) {
+        // accept only request types 1 and 2
+        if (requestType == 1 || requestType == 2) {
             queue.add(weatherRequest);
         }
     }

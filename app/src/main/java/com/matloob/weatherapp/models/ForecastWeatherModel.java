@@ -29,34 +29,4 @@ public class ForecastWeatherModel implements Serializable {
     public void setList(List<CurrentWeatherModel> list) {
         this.list = list;
     }
-
-    public class City implements Serializable {
-        private String name;
-        private String country;
-        private CurrentWeatherModel.Coord coord;
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getCountry() {
-            return country;
-        }
-
-        public void setCountry(String country) {
-            this.country = country;
-        }
-
-        public CurrentWeatherModel.Coord getCoord() {
-            return coord;
-        }
-
-        public void setCoord(CurrentWeatherModel.Coord coord) {
-            this.coord = coord;
-        }
-    }
 }

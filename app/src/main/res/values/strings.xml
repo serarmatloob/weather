@@ -15,7 +15,9 @@
 
     <string name="weather_service_api_key">4cd3a2cf30fd1623709ec44fce44962a</string>
     <string name="weather_endpoint">http://api.openweathermap.org/data/2.5/%1$s?lat=%2$f&amp;lon=%3$f&amp;appid=%4$s&amp;units=imperial</string>
+    <string name="icon_endpoint">http://openweathermap.org/img/wn/%s@2x.png</string>
     <string name="temperature">%d\u00B0</string>
     <string name="current_humidity">%d%%</string>
     <string name="current_pressure">%d hpa</string>
+
 </resources>

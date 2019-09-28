@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -22,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
 import com.matloob.weatherapp.Application;
 import com.matloob.weatherapp.R;
@@ -163,13 +165,29 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
                 TextView temperature = view.findViewById(R.id.current_temp);
                 TextView humidity = view.findViewById(R.id.current_humidity);
                 TextView pressure = view.findViewById(R.id.current_pressure);
+                TextView main = view.findViewById(R.id.current_main);
+                TextView city = view.findViewById(R.id.current_city);
+                TextView description = view.findViewById(R.id.current_description);
+                ImageView icon = view.findViewById(R.id.current_icon);
+                loadIconWithGlide(icon, model.getWeather()[0].getIcon());
+                city.setText(model.getName());
                 temperature.setText(getString(R.string.temperature, (int) model.getMain().getTemp()));
                 humidity.setText(getString(R.string.current_humidity,(int) model.getMain().getHumidity()));
                 pressure.setText(getString(R.string.current_pressure, (int) model.getMain().getPressure()));
+                main.setText(model.getWeather()[0].getMain());
+                description.setText(capitalize(model.getWeather()[0].getDescription()));
                 progressBar.setVisibility(View.GONE);
                 currentWeatherLayout.setVisibility(View.VISIBLE);
             }
         });
+    }
+
+    private String capitalize(final String text) {
+        return Character.toUpperCase(text.charAt(0)) + text.substring(1);
+    }
+
+    private void loadIconWithGlide(ImageView imageView, String icon){
+        Glide.with(Application.getInstance()).load(getString(R.string.icon_endpoint, icon)).into(imageView);
     }
 
 }

@@ -23,6 +23,7 @@ import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static org.hamcrest.Matchers.equalToIgnoringCase;
 
 /**
  * Created by Serar Matloob on 9/27/2019.
@@ -76,5 +77,11 @@ public class CurrentWeatherFragmentTest {
         // pressure
         String expectedPressure = context.getResources().getString(R.string.current_pressure, (int) currentWeatherModel.getMain().getPressure());
         onView(withId(R.id.current_pressure)).check(matches(withText(expectedPressure)));
+        // city name
+        String expectedCity = currentWeatherModel.getName();
+        onView(withId(R.id.current_city)).check(matches(withText(expectedCity)));
+        // weather description
+        String expectedDescription = currentWeatherModel.getWeather()[0].getDescription();
+        onView(withId(R.id.current_description)).check(matches(withText(equalToIgnoringCase(expectedDescription))));
     }
 }

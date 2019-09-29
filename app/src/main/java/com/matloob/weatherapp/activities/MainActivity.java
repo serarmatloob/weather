@@ -320,7 +320,6 @@ public class MainActivity extends AppCompatActivity {
     /**
      * Shows Snackbar to the user with desired message and listener
      *
-     * @param coordinatorLayout view
      * @param message           text
      * @param clickListener     click listener
      */

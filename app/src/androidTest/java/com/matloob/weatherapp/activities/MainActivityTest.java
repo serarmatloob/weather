@@ -35,7 +35,6 @@ import static junit.framework.TestCase.assertTrue;
  * Created by Serar Matloob on 9/26/2019.
  */
 @RunWith(AndroidJUnit4.class)
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MainActivityTest {
 
     // ActivityTestRule launches a given activity before the test starts and closes after the test.
@@ -118,9 +117,10 @@ public class MainActivityTest {
      * This test make sure snackbar message shows up.
      */
     @Test
-    public void A_testShowSnackbar() {
+    public void testShowSnackbar() {
         mainActivity.showConnectionErrorSnackbar("Test Message", null);
-        onView(withText("Test Message")).check(matches(isDisplayed()));
+        onView(withId(com.google.android.material.R.id.snackbar_text))
+                .check(matches(withText("Test Message")));
     }
 
 

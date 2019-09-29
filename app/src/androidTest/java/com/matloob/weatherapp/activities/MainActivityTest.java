@@ -1,6 +1,7 @@
 package com.matloob.weatherapp.activities;
 
 import android.Manifest;
+import android.location.Location;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.rule.ActivityTestRule;
@@ -15,21 +16,26 @@ import com.matloob.weatherapp.utils.SharedPreferencesUtil;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.FixMethodOrder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
+import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertTrue;
 
 /**
  * Created by Serar Matloob on 9/26/2019.
  */
 @RunWith(AndroidJUnit4.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class MainActivityTest {
 
     // ActivityTestRule launches a given activity before the test starts and closes after the test.
@@ -80,7 +86,7 @@ public class MainActivityTest {
 
         onView(withId(R.id.forecast_weather_container)).check(matches(isDisplayed()));
 
-                mainActivity.transitionToFragment(new GrantPermissionFragment());
+        mainActivity.transitionToFragment(new GrantPermissionFragment());
 
         onView(withId(R.id.grant_permissions_container)).check(matches(isDisplayed()));
     }
@@ -90,9 +96,9 @@ public class MainActivityTest {
      */
     @Test
     public void testFetchAndSaveLastKnownLocation() {
-        SharedPreferencesUtil.getInstance().setDoublePreference(Application.getInstance(), SharedPreferencesUtil.PREF_LAST_LONG, 0.0);
-        SharedPreferencesUtil.getInstance().setDoublePreference(Application.getInstance(), SharedPreferencesUtil.PREF_LAST_LAT, 0.0);
-        mainActivity.fetchAndSaveLastKnownLocation(null);
+        SharedPreferencesUtil.getInstance().setStringPreference(Application.getInstance(), SharedPreferencesUtil.PREF_LAST_LONG, null);
+        SharedPreferencesUtil.getInstance().setStringPreference(Application.getInstance(), SharedPreferencesUtil.PREF_LAST_LAT, null);
+        mainActivity.createLocationRequest();
 
         // wait 2 seconds for the service to make the api call
         try {
@@ -101,13 +107,21 @@ public class MainActivityTest {
             e.printStackTrace();
         }
 
-        // make sure preferences were updated so that it doesn't equal 0.
+        // make sure preferences were updated so that it doesn't equal null.
         // I know that this not the ideal way, I can also mock Location object, but I don't really have time to do it.
-        double lon = SharedPreferencesUtil.getInstance().getDoublePreference(Application.getInstance(), SharedPreferencesUtil.PREF_LAST_LONG);
-        double lat = SharedPreferencesUtil.getInstance().getDoublePreference(Application.getInstance(), SharedPreferencesUtil.PREF_LAST_LAT);
+        Location location = SharedPreferencesUtil.getInstance().getLastKnownLocation(Application.getInstance());
 
-        assertTrue(lon != 0.0);
-        assertTrue(lat != 0.0);
+        assertNotNull(location);
     }
+
+    /**
+     * This test make sure snackbar message shows up.
+     */
+    @Test
+    public void A_testShowSnackbar() {
+        mainActivity.showConnectionErrorSnackbar("Test Message", null);
+        onView(withText("Test Message")).check(matches(isDisplayed()));
+    }
+
 
 }

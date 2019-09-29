@@ -1,6 +1,9 @@
 package com.matloob.weatherapp.utils;
 
 import android.content.Context;
+import android.location.Location;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.matloob.weatherapp.Application;
 import com.matloob.weatherapp.models.CurrentWeatherModel;
@@ -8,9 +11,12 @@ import com.matloob.weatherapp.models.ForecastWeatherModel;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static com.matloob.weatherapp.utils.SharedPreferencesUtil.PREF_CURRENT_WEATHER;
 import static com.matloob.weatherapp.utils.SharedPreferencesUtil.PREF_FORECAST_WEATHER;
+import static com.matloob.weatherapp.utils.SharedPreferencesUtil.PREF_LAST_LAT;
+import static com.matloob.weatherapp.utils.SharedPreferencesUtil.PREF_LAST_LONG;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -19,6 +25,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Created by Serar Matloob on 9/28/2019.
  */
+@RunWith(AndroidJUnit4.class)
 public class SharedPreferencesUtilTest {
     private SharedPreferencesUtil sharedPreferencesUtil;
     private Context context;
@@ -94,5 +101,23 @@ public class SharedPreferencesUtilTest {
         assertEquals(40, forecastWeatherModel.getList().size());
         // make sure other values are correct too
         assertEquals(283.76, forecastWeatherModel.getList().get(0).getMain().getTemp(), 2f);
+    }
+
+    @Test
+    public void getLocation() {
+        // set the pref to null
+        sharedPreferencesUtil.setStringPreference(context, PREF_LAST_LAT, null);
+        sharedPreferencesUtil.setStringPreference(context, PREF_LAST_LONG, null);
+        // make fake location object
+        Location location = new Location("moke");
+        location.setLatitude(23.17);
+        location.setLongitude(55.345);
+        // save it
+        sharedPreferencesUtil.setLastKnownLocation(context, location);
+        // get it
+        Location savedLocation = sharedPreferencesUtil.getLastKnownLocation(context);
+
+        assertEquals(location.getLongitude(), savedLocation.getLongitude(), 2f);
+        assertEquals(location.getLatitude(), savedLocation.getLatitude(), 2f);
     }
 }

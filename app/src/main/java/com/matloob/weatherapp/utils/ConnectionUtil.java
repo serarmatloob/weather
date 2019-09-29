@@ -1,10 +1,16 @@
 package com.matloob.weatherapp.utils;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkInfo;
+import android.view.View;
+import android.widget.TextView;
+
+import com.google.android.material.snackbar.Snackbar;
+import com.matloob.weatherapp.R;
 
 /**
  * Created by Serar Matloob on 9/27/2019.

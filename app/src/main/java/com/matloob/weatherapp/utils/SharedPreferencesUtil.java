@@ -2,6 +2,7 @@ package com.matloob.weatherapp.utils;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.location.Location;
 import android.preference.PreferenceManager;
 
 import com.google.gson.Gson;
@@ -40,9 +41,9 @@ public class SharedPreferencesUtil {
     /**
      * Save boolean in preferences
      *
-     * @param context
-     * @param key
-     * @param value
+     * @param context for accessing shared preference
+     * @param key pref key
+     * @param value pref value
      */
     public void setBooleanPreference(Context context, String key, boolean value) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -52,8 +53,8 @@ public class SharedPreferencesUtil {
     /**
      * Get boolean from preferences
      *
-     * @param context
-     * @param key
+     * @param context for accessing shared preference
+     * @param key pref key
      * @return a {@link Boolean} value
      */
     public boolean getBooleanPreference(Context context, String key) {
@@ -64,9 +65,9 @@ public class SharedPreferencesUtil {
     /**
      * Save a string in preferences
      *
-     * @param context
-     * @param key
-     * @param value
+     * @param context for accessing shared preference
+     * @param key pref key
+     * @param value pref value
      */
     public void setStringPreference(Context context, String key, String value) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -76,8 +77,8 @@ public class SharedPreferencesUtil {
     /**
      * Get a string from preferences
      *
-     * @param context
-     * @param key
+     * @param context for accessing shared preference
+     * @param key pref key
      * @return a {@link String} value
      */
     public String getStringPreference(Context context, String key) {
@@ -88,9 +89,9 @@ public class SharedPreferencesUtil {
     /**
      * Save a double in preferences
      *
-     * @param context
-     * @param key
-     * @param value
+     * @param context for accessing shared preference
+     * @param key pref key
+     * @param value pref value
      */
     public void setDoublePreference(Context context, String key, double value) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -100,8 +101,8 @@ public class SharedPreferencesUtil {
     /**
      * Get a double from preferences
      *
-     * @param context
-     * @param key
+     * @param context for accessing shared preference
+     * @param key pref key
      * @return a {@link Double} value
      */
     public double getDoublePreference(Context context, String key) {
@@ -112,9 +113,9 @@ public class SharedPreferencesUtil {
     /**
      * Save an integer in preferences
      *
-     * @param context
-     * @param key
-     * @param value
+     * @param context for accessing shared preference
+     * @param key pref key
+     * @param value pref value
      */
     public void setIntPreference(Context context, String key, int value) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -124,8 +125,8 @@ public class SharedPreferencesUtil {
     /**
      * Get an integer from preferences
      *
-     * @param context
-     * @param key
+     * @param context for accessing shared preference
+     * @param key pref key
      * @return a {@link Integer} value
      */
     public int getIntPreference(Context context, String key) {
@@ -136,7 +137,7 @@ public class SharedPreferencesUtil {
     /**
      * Get the last currentWeather model saved in shared preferences
      *
-     * @param context
+     * @param context for accessing shared preference
      * @return a {@link CurrentWeatherModel} instance
      */
     public CurrentWeatherModel getWeatherItem(Context context) {
@@ -147,12 +148,43 @@ public class SharedPreferencesUtil {
     /**
      * Get the last forecastWeather model saved in shared preferences
      *
-     * @param context
+     * @param context for accessing shared preference
      * @return a {@link ForecastWeatherModel} instance
      */
     public ForecastWeatherModel getForecastItem(Context context) {
         String jsonText = getStringPreference(context, PREF_FORECAST_WEATHER);
         return new Gson().fromJson(jsonText, ForecastWeatherModel.class);
+    }
+
+    /**
+     * Set the last known location model in shared preferences
+     *
+     * @param context for accessing shared preference
+     * @param location a {@link Location} instance
+     */
+    public void setLastKnownLocation(Context context, Location location) {
+        String lon = String.valueOf(location.getLongitude());
+        String lat = String.valueOf(location.getLatitude());
+        setStringPreference(context, PREF_LAST_LONG, lon);
+        setStringPreference(context, PREF_LAST_LAT, lat);
+    }
+
+    /**
+     * Get the last known location saved in shared preferences
+     *
+     * @param context for accessing shared preference
+     * @return a {@link Location} instance
+     */
+    public Location getLastKnownLocation(Context context) {
+        String lon = getStringPreference(context, PREF_LAST_LONG);
+        String lat = getStringPreference(context, PREF_LAST_LAT);
+        if(lon != null && lat != null){
+            Location location = new Location("");
+            location.setLongitude(Double.parseDouble(lon));
+            location.setLatitude(Double.parseDouble(lat));
+            return location;
+        }
+        return null;
     }
 
 }

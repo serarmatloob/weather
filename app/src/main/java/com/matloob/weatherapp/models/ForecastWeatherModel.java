@@ -18,10 +18,6 @@ public class ForecastWeatherModel implements Serializable {
         return city;
     }
 
-    public void setCity(City city) {
-        this.city = city;
-    }
-
     public List<CurrentWeatherModel> getList() {
         return list;
     }

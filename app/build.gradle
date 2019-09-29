@@ -78,6 +78,7 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:' + rootProject.runnerVersion;
     androidTestImplementation 'androidx.test.espresso:espresso-core:' + rootProject.espressoVersion;
     androidTestImplementation 'androidx.test.espresso:espresso-intents:' + rootProject.espressoVersion;
+    androidTestImplementation 'androidx.test.espresso:espresso-contrib:'+ rootProject.espressoVersion;
 
     //espresso idling resource
     implementation 'androidx.test.espresso:espresso-idling-resource:' + rootProject.espressoVersion;

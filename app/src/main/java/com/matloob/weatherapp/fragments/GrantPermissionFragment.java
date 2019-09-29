@@ -34,13 +34,14 @@ import java.util.Map;
  * A simple {@link Fragment} subclass.
  */
 public class GrantPermissionFragment extends Fragment {
-
-    public static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 123;
     //TAG
     private static final String TAG = "GrantPermissionFragment";
-
+    // MainActivity instance
     private MainActivity mainActivity;
+    // Permissions list
     private static ArrayList<String> listPermissionsNeeded;
+    // Permission request code
+    private static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 123;
 
     public GrantPermissionFragment() {
         // Required empty public constructor
@@ -54,17 +55,10 @@ public class GrantPermissionFragment extends Fragment {
     }
 
     @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-
-    }
-
-    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         Button buttonGrant = view.findViewById(R.id.button_grant);
-
+        // User click on grant button to request enable location
         buttonGrant.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -75,6 +69,11 @@ public class GrantPermissionFragment extends Fragment {
         });
     }
 
+    /**
+     * Get the permissions state
+     *
+     * @return {@link Boolean} weather permissions all granted
+     */
     public static boolean allPermissionsGranted() {
         int access_fine_location = ContextCompat.checkSelfPermission(Application.getInstance(), Manifest.permission.ACCESS_FINE_LOCATION);
         int access_coarse_location = ContextCompat.checkSelfPermission(Application.getInstance(), Manifest.permission.ACCESS_COARSE_LOCATION);
@@ -116,8 +115,8 @@ public class GrantPermissionFragment extends Fragment {
 
                     // transition to current weather fragment
                     Fragment currentWeather = mainActivity.getSupportFragmentManager().findFragmentByTag(CurrentWeatherFragment.class.getSimpleName());
-                    if(currentWeather == null){
-                        currentWeather  = new CurrentWeatherFragment();
+                    if (currentWeather == null) {
+                        currentWeather = new CurrentWeatherFragment();
                     }
                     mainActivity.transitionToFragment(currentWeather);
 
@@ -143,6 +142,12 @@ public class GrantPermissionFragment extends Fragment {
         }
     }
 
+    /**
+     * Helper to show quick dialog
+     *
+     * @param message    dialog message
+     * @param okListener click listener
+     */
     private void showDialogOK(String message, DialogInterface.OnClickListener okListener) {
         new AlertDialog.Builder(mainActivity)
                 .setMessage(message)
@@ -151,6 +156,11 @@ public class GrantPermissionFragment extends Fragment {
                 .show();
     }
 
+    /**
+     * Helper to show long dialog to explain user that permissions are needed.
+     *
+     * @param msg dialog message
+     */
     private void explain(String msg) {
         new AlertDialog.Builder(mainActivity).setMessage(msg)
                 .setPositiveButton(getResources().getString(R.string.yes), new DialogInterface.OnClickListener() {

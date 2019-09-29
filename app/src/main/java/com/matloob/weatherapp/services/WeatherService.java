@@ -93,6 +93,7 @@ public class WeatherService extends Service {
             @Override
             public void onResponse(JSONObject response) {
                 Log.i(TAG, "onResponse: " + response.toString());
+
                 // save the response in shared preference in case we lost internet connection.
                 SharedPreferencesUtil.getInstance().setStringPreference(Application.getInstance(),
                         requestType == REQUEST_TYPE_CURRENT ? SharedPreferencesUtil.PREF_CURRENT_WEATHER : SharedPreferencesUtil.PREF_FORECAST_WEATHER, response.toString());
@@ -113,7 +114,7 @@ public class WeatherService extends Service {
             }
         });
         // accept only request types 1 and 2
-        if (requestType == 1 || requestType == 2) {
+        if (requestType == REQUEST_TYPE_CURRENT || requestType == REQUEST_TYPE_FORECAST) {
             queue.add(weatherRequest);
         }
     }
@@ -123,6 +124,9 @@ public class WeatherService extends Service {
         return binder;
     }
 
+    /**
+     * Callback interface for the clients
+     */
     public interface WeatherCallback {
         void onWeatherResultReady(String weatherResult);
 

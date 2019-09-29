@@ -5,11 +5,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,10 +20,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.google.gson.Gson;
@@ -30,25 +34,36 @@ import com.matloob.weatherapp.R;
 import com.matloob.weatherapp.activities.MainActivity;
 import com.matloob.weatherapp.models.CurrentWeatherModel;
 import com.matloob.weatherapp.services.WeatherService;
+import com.matloob.weatherapp.utils.ConnectionUtil;
 import com.matloob.weatherapp.utils.SharedPreferencesUtil;
+
+import java.util.Calendar;
+import java.util.Locale;
 
 import static com.matloob.weatherapp.services.WeatherService.EXTRA_WEATHER_LOCATION_KEY;
 import static com.matloob.weatherapp.services.WeatherService.EXTRA_WEATHER_REQUEST_TYPE_KEY;
 import static com.matloob.weatherapp.services.WeatherService.REQUEST_TYPE_CURRENT;
 
-public class CurrentWeatherFragment extends Fragment implements ServiceConnection, WeatherService.WeatherCallback, MainActivity.MainCallback {
+/**
+ * This Fragment class shows the current weather details.
+ */
+public class CurrentWeatherFragment extends Fragment implements ServiceConnection, WeatherService.WeatherCallback, MainActivity.MainCallback, SwipeRefreshLayout.OnRefreshListener {
     //TAG
     private static final String TAG = "CurrentWeatherFragment";
-
+    // Boolean to know if bound to service or not
     private boolean bound = false;
-
+    // Main activity instance
     private MainActivity mainActivity;
-
+    // Weather service instance
     private WeatherService weatherService;
-
+    // Fragment view instance
     private View view;
+    // Progressbar instance
     private ProgressBar progressBar;
+    // Layout instance
     private LinearLayout currentWeatherLayout;
+    // SwipeRefresh layout instance
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -61,18 +76,21 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        // init views
         progressBar = view.findViewById(R.id.progress_bar);
         progressBar.setVisibility(View.VISIBLE);
         currentWeatherLayout = view.findViewById(R.id.current_weather_layout);
         currentWeatherLayout.setVisibility(View.GONE);
+        swipeRefreshLayout = view.findViewById(R.id.current_weather_container);
+        swipeRefreshLayout.setOnRefreshListener(this);
     }
 
-    @Override
-    public void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-    }
 
+    /**
+     * Called when location is updated.
+     *
+     * @param location current location
+     */
     @Override
     public void onLocationUpdated(Location location) {
         Intent serviceIntent = new Intent(Application.getInstance(), WeatherService.class);
@@ -83,15 +101,35 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
         Application.getInstance().startService(serviceIntent);
     }
 
+    /**
+     * Called when location is unavailable
+     */
     @Override
-    public void onConnectionChanged() {
-        mainActivity.fetchAndSaveLastKnownLocation(CurrentWeatherFragment.this);
+    public void onLocationUnavailable() {
+        swipeRefreshLayout.setRefreshing(false);
+        progressBar.setVisibility(View.GONE);
+        mainActivity.showConnectionErrorSnackbar("Failed to get location!", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onRefresh();
+            }
+        });
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        mainActivity.fetchAndSaveLastKnownLocation(CurrentWeatherFragment.this);
+        // update weather when user navigate back to the fragment
+        updateCurrentWeather();
+    }
+
+    /**
+     * This function request to update weather from main activity and bind to the service
+     */
+    private void updateCurrentWeather() {
+        progressBar.setVisibility(View.VISIBLE);
+        currentWeatherLayout.setVisibility(View.GONE);
+        mainActivity.createLocationRequest();
         Intent serviceIntent = new Intent(Application.getInstance(), WeatherService.class);
         Application.getInstance().bindService(serviceIntent, this, Context.BIND_AUTO_CREATE);
     }
@@ -111,6 +149,7 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
         super.onAttach(context);
         if (context instanceof Activity) {
             mainActivity = (MainActivity) context;
+            mainActivity.setMainCallback(CurrentWeatherFragment.this);
         }
     }
 
@@ -119,6 +158,11 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
         super.onDetach();
     }
 
+    /**
+     * Called when weather results are ready to view
+     *
+     * @param weatherResult Weather result
+     */
     @Override
     public void onWeatherResultReady(String weatherResult) {
         CurrentWeatherModel currentWeatherModel = null;
@@ -130,18 +174,43 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
         } else {
             currentWeatherModel = SharedPreferencesUtil.getInstance().getWeatherItem(Application.getInstance());
         }
-
+        // If not null, update the UI with the new results, otherwise show error message to user
         if (currentWeatherModel != null) {
-            Log.i(TAG, "onWeatherResultReady: " + currentWeatherModel.getMain().getTemp());
             updateUI(currentWeatherModel);
+        } else {
+            progressBar.setVisibility(View.GONE);
+            mainActivity.showConnectionErrorSnackbar("Something went wrong", new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    onRefresh();
+                }
+            });
         }
-
 
     }
 
+    /**
+     * Called when weather results are failed to obtain
+     *
+     * @param errorMessage message
+     */
     @Override
     public void onWeatherResultFailed(String errorMessage) {
         Log.i(TAG, "onWeatherResultFailed: " + errorMessage);
+        CurrentWeatherModel currentWeatherModel = SharedPreferencesUtil.getInstance().getWeatherItem(Application.getInstance());
+        // If we already have something saved in shared preference, then we just show connection error and old weather date.
+        if (currentWeatherModel != null) {
+            Toast.makeText(Application.getInstance(), R.string.connection_error_showing_last_known, Toast.LENGTH_LONG).show();
+            updateUI(currentWeatherModel);
+        } else {
+            // In case we don't have any data
+            mainActivity.showConnectionErrorSnackbar(getString(R.string.connection_error_try_again), new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    onRefresh();
+                }
+            });
+        }
     }
 
     @Override
@@ -157,7 +226,12 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
         bound = false;
     }
 
-    public void updateUI(final CurrentWeatherModel model) {
+    /**
+     * Updates the UI with the new model
+     *
+     * @param currentWeatherModel {@link CurrentWeatherModel} instance
+     */
+    private void updateUI(final CurrentWeatherModel currentWeatherModel) {
         Handler updateUiHandler = new Handler(Looper.getMainLooper());
         updateUiHandler.post(new Runnable() {
             @Override
@@ -168,26 +242,65 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
                 TextView main = view.findViewById(R.id.current_main);
                 TextView city = view.findViewById(R.id.current_city);
                 TextView description = view.findViewById(R.id.current_description);
+                TextView wind = view.findViewById(R.id.current_wind);
+                TextView date = view.findViewById(R.id.current_date);
                 ImageView icon = view.findViewById(R.id.current_icon);
-                loadIconWithGlide(icon, model.getWeather()[0].getIcon());
-                city.setText(model.getName());
-                temperature.setText(getString(R.string.temperature, (int) model.getMain().getTemp()));
-                humidity.setText(getString(R.string.current_humidity,(int) model.getMain().getHumidity()));
-                pressure.setText(getString(R.string.current_pressure, (int) model.getMain().getPressure()));
-                main.setText(model.getWeather()[0].getMain());
-                description.setText(capitalize(model.getWeather()[0].getDescription()));
-                progressBar.setVisibility(View.GONE);
-                currentWeatherLayout.setVisibility(View.VISIBLE);
+
+                try {
+                    loadIconWithGlide(icon, currentWeatherModel.getWeather()[0].getIcon());
+                    city.setText(currentWeatherModel.getName());
+                    temperature.setText(getString(R.string.temperature, (int) currentWeatherModel.getMain().getTemp()));
+                    humidity.setText(getString(R.string.current_humidity, (int) currentWeatherModel.getMain().getHumidity()));
+                    pressure.setText(getString(R.string.current_pressure, (int) currentWeatherModel.getMain().getPressure()));
+                    wind.setText(getString(R.string.current_wind, (int) currentWeatherModel.getWind().getSpeed()));
+                    main.setText(currentWeatherModel.getWeather()[0].getMain());
+                    description.setText(capitalize(currentWeatherModel.getWeather()[0].getDescription()));
+                    date.setText(getString(R.string.last_updated, getDate(currentWeatherModel.getDt())));
+                    progressBar.setVisibility(View.GONE);
+                    currentWeatherLayout.setVisibility(View.VISIBLE);
+                    swipeRefreshLayout.setRefreshing(false);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
 
+    /**
+     * helper to get readable date and time
+     *
+     * @param time in unix time
+     * @return a {@link String} of date and time
+     */
+    private String getDate(long time) {
+        Calendar cal = Calendar.getInstance(Locale.getDefault());
+        cal.setTimeInMillis(time * 1000);
+        return DateFormat.format("MM-dd-yyyy hh:mma", cal).toString();
+    }
+
+    /**
+     * Helper to format weather forecast
+     *
+     * @param text text
+     * @return a {@link String} of capitalized first word of string.
+     */
     private String capitalize(final String text) {
         return Character.toUpperCase(text.charAt(0)) + text.substring(1);
     }
 
-    private void loadIconWithGlide(ImageView imageView, String icon){
+    /**
+     * Helper function to load icon into image view
+     *
+     * @param imageView {@link ImageView}
+     * @param icon      {@link String} code
+     */
+    private void loadIconWithGlide(ImageView imageView, String icon) {
         Glide.with(Application.getInstance()).load(getString(R.string.icon_endpoint, icon)).into(imageView);
     }
 
+    @Override
+    public void onRefresh() {
+        swipeRefreshLayout.setRefreshing(false);
+        updateCurrentWeather();
+    }
 }

@@ -87,9 +87,13 @@ public class CreateForecastArrays extends AsyncTask<String, Void, List<ForecastW
     }
 
     /**
-     * Created by Serar Matloob on 9/29/2019.
+     * Interface to return task results
      */
     public interface ArrayCallback {
+        /**
+         * Called when resulted array is ready
+         * @param result Array of 5 forecast arrays.
+         */
         void onArrayReady(List<ForecastWeatherModel> result);
     }
 

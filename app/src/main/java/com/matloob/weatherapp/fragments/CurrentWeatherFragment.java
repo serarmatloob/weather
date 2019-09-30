@@ -5,7 +5,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
@@ -34,7 +33,6 @@ import com.matloob.weatherapp.R;
 import com.matloob.weatherapp.activities.MainActivity;
 import com.matloob.weatherapp.models.CurrentWeatherModel;
 import com.matloob.weatherapp.services.WeatherService;
-import com.matloob.weatherapp.utils.ConnectionUtil;
 import com.matloob.weatherapp.utils.SharedPreferencesUtil;
 
 import java.util.Calendar;
@@ -65,6 +63,23 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
     // SwipeRefresh layout instance
     private SwipeRefreshLayout swipeRefreshLayout;
 
+    public CurrentWeatherFragment() {
+        // Required empty public constructor
+    }
+
+    @Override
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+        WeatherService.WeatherServiceBinder binder = (WeatherService.WeatherServiceBinder) iBinder;
+        weatherService = binder.getService();
+        weatherService.setWeatherCallback(CurrentWeatherFragment.this);
+        bound = true;
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+        bound = false;
+    }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -85,53 +100,11 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
         swipeRefreshLayout.setOnRefreshListener(this);
     }
 
-
-    /**
-     * Called when location is updated.
-     *
-     * @param location current location
-     */
-    @Override
-    public void onLocationUpdated(Location location) {
-        Intent serviceIntent = new Intent(Application.getInstance(), WeatherService.class);
-        Bundle bundle = new Bundle();
-        bundle.putParcelable(EXTRA_WEATHER_LOCATION_KEY, location);
-        bundle.putInt(EXTRA_WEATHER_REQUEST_TYPE_KEY, REQUEST_TYPE_CURRENT);
-        serviceIntent.putExtras(bundle);
-        Application.getInstance().startService(serviceIntent);
-    }
-
-    /**
-     * Called when location is unavailable
-     */
-    @Override
-    public void onLocationUnavailable() {
-        swipeRefreshLayout.setRefreshing(false);
-        progressBar.setVisibility(View.GONE);
-        mainActivity.showConnectionErrorSnackbar("Failed to get location!", new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onRefresh();
-            }
-        });
-    }
-
     @Override
     public void onStart() {
         super.onStart();
         // update weather when user navigate back to the fragment
         updateCurrentWeather();
-    }
-
-    /**
-     * This function request to update weather from main activity and bind to the service
-     */
-    private void updateCurrentWeather() {
-        progressBar.setVisibility(View.VISIBLE);
-        currentWeatherLayout.setVisibility(View.GONE);
-        mainActivity.createLocationRequest();
-        Intent serviceIntent = new Intent(Application.getInstance(), WeatherService.class);
-        Application.getInstance().bindService(serviceIntent, this, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -158,11 +131,46 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
         super.onDetach();
     }
 
+    @Override
+    public void onRefresh() {
+        swipeRefreshLayout.setRefreshing(false);
+        updateCurrentWeather();
+    }
+
+    @Override
+    public void onLocationUpdated(Location location) {
+        Intent serviceIntent = new Intent(Application.getInstance(), WeatherService.class);
+        Bundle bundle = new Bundle();
+        bundle.putParcelable(EXTRA_WEATHER_LOCATION_KEY, location);
+        bundle.putInt(EXTRA_WEATHER_REQUEST_TYPE_KEY, REQUEST_TYPE_CURRENT);
+        serviceIntent.putExtras(bundle);
+        Application.getInstance().startService(serviceIntent);
+    }
+
+    @Override
+    public void onLocationUnavailable() {
+        swipeRefreshLayout.setRefreshing(false);
+        progressBar.setVisibility(View.GONE);
+        mainActivity.showConnectionErrorSnackbar("Failed to get location!", new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onRefresh();
+            }
+        });
+    }
+
     /**
-     * Called when weather results are ready to view
-     *
-     * @param weatherResult Weather result
+     * This function request to update weather from main activity and bind to the service
      */
+    private void updateCurrentWeather() {
+        progressBar.setVisibility(View.VISIBLE);
+        currentWeatherLayout.setVisibility(View.GONE);
+        mainActivity.createLocationRequest();
+        Intent serviceIntent = new Intent(Application.getInstance(), WeatherService.class);
+        Application.getInstance().bindService(serviceIntent, this, Context.BIND_AUTO_CREATE);
+    }
+
+
     @Override
     public void onWeatherResultReady(String weatherResult) {
         CurrentWeatherModel currentWeatherModel = null;
@@ -189,11 +197,6 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
 
     }
 
-    /**
-     * Called when weather results are failed to obtain
-     *
-     * @param errorMessage message
-     */
     @Override
     public void onWeatherResultFailed(String errorMessage) {
         Log.i(TAG, "onWeatherResultFailed: " + errorMessage);
@@ -211,19 +214,6 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
                 }
             });
         }
-    }
-
-    @Override
-    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-        WeatherService.WeatherServiceBinder binder = (WeatherService.WeatherServiceBinder) iBinder;
-        weatherService = binder.getService();
-        weatherService.setWeatherCallback(CurrentWeatherFragment.this);
-        bound = true;
-    }
-
-    @Override
-    public void onServiceDisconnected(ComponentName componentName) {
-        bound = false;
     }
 
     /**
@@ -296,11 +286,5 @@ public class CurrentWeatherFragment extends Fragment implements ServiceConnectio
      */
     private void loadIconWithGlide(ImageView imageView, String icon) {
         Glide.with(Application.getInstance()).load(getString(R.string.icon_endpoint, icon)).into(imageView);
-    }
-
-    @Override
-    public void onRefresh() {
-        swipeRefreshLayout.setRefreshing(false);
-        updateCurrentWeather();
     }
 }

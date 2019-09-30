@@ -69,6 +69,19 @@ public class GrantPermissionFragment extends Fragment {
         });
     }
 
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof Activity) {
+            mainActivity = (MainActivity) context;
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+    }
+
     /**
      * Get the permissions state
      *
@@ -180,19 +193,6 @@ public class GrantPermissionFragment extends Fragment {
                         paramDialogInterface.dismiss();
                     }
                 }).show();
-    }
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        if (context instanceof Activity) {
-            mainActivity = (MainActivity) context;
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
     }
 
 }

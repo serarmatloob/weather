@@ -347,8 +347,15 @@ public class MainActivity extends AppCompatActivity {
      * Location callback interface for fragments
      */
     public interface MainCallback {
+        /**
+         * Called when location is updated
+         * @param location {@link Location} instance
+         */
         void onLocationUpdated(Location location);
 
+        /**
+         * Called when location is unavailable
+         */
         void onLocationUnavailable();
     }
 }

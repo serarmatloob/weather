@@ -65,6 +65,19 @@ public class ForecastWeatherFragment extends Fragment implements ServiceConnecti
     }
 
     @Override
+    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+        WeatherService.WeatherServiceBinder binder = (WeatherService.WeatherServiceBinder) iBinder;
+        weatherService = binder.getService();
+        weatherService.setWeatherCallback(ForecastWeatherFragment.this);
+        bound = true;
+    }
+
+    @Override
+    public void onServiceDisconnected(ComponentName componentName) {
+        bound = false;
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -85,6 +98,43 @@ public class ForecastWeatherFragment extends Fragment implements ServiceConnecti
         daysForecastRecycler.setLayoutManager(linearLayoutManager);
         // set visibility to gone until we have new data
         daysForecastRecycler.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        updateForecastWeather();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (bound) {
+            // Set callback to null then unbind
+            weatherService.setWeatherCallback(null);
+            Application.getInstance().unbindService(this);
+            bound = false;
+        }
+    }
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof Activity) {
+            mainActivity = (MainActivity) context;
+            mainActivity.setMainCallback(ForecastWeatherFragment.this);
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+    }
+
+    @Override
+    public void onRefresh() {
+        swipeRefreshLayout.setRefreshing(false);
+        updateForecastWeather();
     }
 
     @Override
@@ -111,12 +161,6 @@ public class ForecastWeatherFragment extends Fragment implements ServiceConnecti
         });
     }
 
-    @Override
-    public void onStart() {
-        super.onStart();
-        updateForecastWeather();
-    }
-
     private void updateForecastWeather() {
         // update location when user is back to the app.
         progressBar.setVisibility(View.VISIBLE);
@@ -125,31 +169,6 @@ public class ForecastWeatherFragment extends Fragment implements ServiceConnecti
         // then bind to the service.
         Intent serviceIntent = new Intent(Application.getInstance(), WeatherService.class);
         Application.getInstance().bindService(serviceIntent, this, Context.BIND_AUTO_CREATE);
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (bound) {
-            // Set callback to null then unbind
-            weatherService.setWeatherCallback(null);
-            Application.getInstance().unbindService(this);
-            bound = false;
-        }
-    }
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        if (context instanceof Activity) {
-            mainActivity = (MainActivity) context;
-            mainActivity.setMainCallback(ForecastWeatherFragment.this);
-        }
-    }
-
-    @Override
-    public void onDetach() {
-        super.onDetach();
     }
 
     @Override
@@ -208,11 +227,6 @@ public class ForecastWeatherFragment extends Fragment implements ServiceConnecti
 
     }
 
-    /**
-     * Called when forecast array ready to be used.
-     *
-     * @param result ForecastWeatherModel array list
-     */
     @Override
     public void onArrayReady(List<ForecastWeatherModel> result) {
         DaysForecastAdapter daysForecastAdapter = new DaysForecastAdapter(result);
@@ -220,26 +234,6 @@ public class ForecastWeatherFragment extends Fragment implements ServiceConnecti
         progressBar.setVisibility(View.GONE);
         daysForecastRecycler.setVisibility(View.VISIBLE);
         swipeRefreshLayout.setRefreshing(false);
-    }
-
-    @Override
-    public void onRefresh() {
-        swipeRefreshLayout.setRefreshing(false);
-        updateForecastWeather();
-    }
-
-
-    @Override
-    public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
-        WeatherService.WeatherServiceBinder binder = (WeatherService.WeatherServiceBinder) iBinder;
-        weatherService = binder.getService();
-        weatherService.setWeatherCallback(ForecastWeatherFragment.this);
-        bound = true;
-    }
-
-    @Override
-    public void onServiceDisconnected(ComponentName componentName) {
-        bound = false;
     }
 }
 

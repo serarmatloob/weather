@@ -128,8 +128,16 @@ public class WeatherService extends Service {
      * Callback interface for the clients
      */
     public interface WeatherCallback {
+        /**
+         * Called when weather result is ready
+         * @param weatherResult a {@link String} of Json
+         */
         void onWeatherResultReady(String weatherResult);
 
+        /**
+         * Called when failing to deliver weather result
+         * @param errorMessage a {@link String} of Error message
+         */
         void onWeatherResultFailed(String errorMessage);
     }
 
@@ -137,6 +145,10 @@ public class WeatherService extends Service {
      * The binder class
      */
     public class WeatherServiceBinder extends Binder {
+        /**
+         * Get weather service instance
+         * @return a {@link WeatherService} instance
+         */
         public WeatherService getService() {
             return WeatherService.this;
         }

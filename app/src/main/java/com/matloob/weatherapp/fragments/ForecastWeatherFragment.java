@@ -53,11 +53,11 @@ public class ForecastWeatherFragment extends Fragment implements ServiceConnecti
     private WeatherService weatherService;
     // boolean to check if service is bound
     private boolean bound = false;
-
+    // Our 5 days recycler view
     private RecyclerView daysForecastRecycler;
-
+    // Loading progress
     private ProgressBar progressBar;
-
+    // Refresh layout
     private SwipeRefreshLayout swipeRefreshLayout;
 
     public ForecastWeatherFragment() {
@@ -74,18 +74,17 @@ public class ForecastWeatherFragment extends Fragment implements ServiceConnecti
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        // init views
         progressBar = view.findViewById(R.id.progress_bar);
-
         daysForecastRecycler = view.findViewById(R.id.days_recycler_view);
         swipeRefreshLayout = view.findViewById(R.id.forecast_weather_container);
         swipeRefreshLayout.setOnRefreshListener(this);
+        // create layout manager
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getContext());
-
+        // attach it to recycler
         daysForecastRecycler.setLayoutManager(linearLayoutManager);
+        // set visibility to gone until we have new data
         daysForecastRecycler.setVisibility(View.GONE);
-
-
     }
 
     @Override

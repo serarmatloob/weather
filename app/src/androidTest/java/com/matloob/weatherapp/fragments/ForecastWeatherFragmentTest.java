@@ -40,6 +40,9 @@ import static androidx.test.espresso.matcher.ViewMatchers.hasDescendant;
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static com.matloob.weatherapp.TestHelper.atPosition;
+import static com.matloob.weatherapp.TestHelper.getTime;
+import static com.matloob.weatherapp.TestHelper.withIndex;
 
 /**
  * Created by Serar Matloob on 9/27/2019.
@@ -112,50 +115,6 @@ public class ForecastWeatherFragmentTest {
 
         // make sure that the data displayed in the 1st row of the first day matches the list we got.
         onView(withIndex(withId(R.id.forecast_recycler), 0)).check(matches(atPosition(0, hasDescendant(withText(Application.getInstance().getString(R.string.temperature, (int) forecastWeatherModel.getList().get(0).getMain().getTemp()))))));
-    }
-
-    private static Matcher<View> atPosition(final int position, @NonNull final Matcher<View> itemMatcher) {
-        checkNotNull(itemMatcher);
-        return new BoundedMatcher<View, RecyclerView>(RecyclerView.class) {
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("has item at position " + position + ": ");
-                itemMatcher.describeTo(description);
-            }
-
-            @Override
-            protected boolean matchesSafely(final RecyclerView view) {
-                RecyclerView.ViewHolder viewHolder = view.findViewHolderForAdapterPosition(position);
-                if (viewHolder == null) {
-                    return false;
-                }
-                return itemMatcher.matches(viewHolder.itemView);
-            }
-        };
-    }
-
-    private static Matcher<View> withIndex(final Matcher<View> matcher, final int index) {
-        return new TypeSafeMatcher<View>() {
-            int currentIndex = 0;
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("with index: ");
-                description.appendValue(index);
-                matcher.describeTo(description);
-            }
-
-            @Override
-            public boolean matchesSafely(View view) {
-                return matcher.matches(view) && currentIndex++ == index;
-            }
-        };
-    }
-
-    private String getTime(long time) {
-        Calendar cal = Calendar.getInstance(Locale.getDefault());
-        cal.setTimeInMillis(time * 1000);
-        return DateFormat.format("hh:mma", cal).toString();
     }
 
 }

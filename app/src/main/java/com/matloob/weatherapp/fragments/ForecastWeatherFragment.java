@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.location.Location;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
@@ -30,14 +29,11 @@ import com.matloob.weatherapp.R;
 import com.matloob.weatherapp.activities.MainActivity;
 import com.matloob.weatherapp.activities.MainActivity.MainCallback;
 import com.matloob.weatherapp.adapters.DaysForecastAdapter;
-import com.matloob.weatherapp.interfaces.ArrayCallback;
-import com.matloob.weatherapp.models.CurrentWeatherModel;
 import com.matloob.weatherapp.models.ForecastWeatherModel;
 import com.matloob.weatherapp.services.WeatherService;
-import com.matloob.weatherapp.utils.ConnectionUtil;
+import com.matloob.weatherapp.tasks.CreateForecastArrays;
 import com.matloob.weatherapp.utils.SharedPreferencesUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.matloob.weatherapp.services.WeatherService.EXTRA_WEATHER_LOCATION_KEY;
@@ -47,7 +43,8 @@ import static com.matloob.weatherapp.services.WeatherService.REQUEST_TYPE_FORECA
 /**
  * This Fragment class shows the forecast weather details.
  */
-public class ForecastWeatherFragment extends Fragment implements ServiceConnection, WeatherService.WeatherCallback, MainCallback, ArrayCallback, SwipeRefreshLayout.OnRefreshListener {
+public class ForecastWeatherFragment extends Fragment implements ServiceConnection, WeatherService.WeatherCallback,
+        MainCallback, CreateForecastArrays.ArrayCallback, SwipeRefreshLayout.OnRefreshListener {
     // TAG
     private static final String TAG = "ForecastWeatherFragment";
     // Main activity instance
@@ -170,8 +167,7 @@ public class ForecastWeatherFragment extends Fragment implements ServiceConnecti
 
         if (forecastWeatherModel != null) {
             updateUI(forecastWeatherModel);
-        }
-        else {
+        } else {
             progressBar.setVisibility(View.GONE);
             mainActivity.showConnectionErrorSnackbar("Something went wrong", new View.OnClickListener() {
                 @Override
@@ -215,6 +211,7 @@ public class ForecastWeatherFragment extends Fragment implements ServiceConnecti
 
     /**
      * Called when forecast array ready to be used.
+     *
      * @param result ForecastWeatherModel array list
      */
     @Override
@@ -230,85 +227,6 @@ public class ForecastWeatherFragment extends Fragment implements ServiceConnecti
     public void onRefresh() {
         swipeRefreshLayout.setRefreshing(false);
         updateForecastWeather();
-    }
-
-    /**
-     * This AsyncTask populate the forecast array and divide it into 5 arrays each 8 of (3 hour forecasts)
-     * Then save it to new array to be used with the recycler
-     */
-    private static class CreateForecastArrays extends AsyncTask<String, Void, List<ForecastWeatherModel>> {
-        private ForecastWeatherModel forecastWeatherModel;
-        private ArrayCallback callback;
-
-        CreateForecastArrays(final ForecastWeatherModel forecastWeatherModel, ArrayCallback callback) {
-            this.forecastWeatherModel = forecastWeatherModel;
-            this.callback = callback;
-        }
-
-        @Override
-        protected List<ForecastWeatherModel> doInBackground(String... params) {
-            List<CurrentWeatherModel> day1 = new ArrayList<>();
-            List<CurrentWeatherModel> day2 = new ArrayList<>();
-            List<CurrentWeatherModel> day3 = new ArrayList<>();
-            List<CurrentWeatherModel> day4 = new ArrayList<>();
-            List<CurrentWeatherModel> day5 = new ArrayList<>();
-
-            List<ForecastWeatherModel> daysForecastList = new ArrayList<>();
-
-            try {
-                int counter = 0;
-                for (int i = 0; i < forecastWeatherModel.getList().size(); i++) {
-                    if (counter < 8) {
-                        day1.add(forecastWeatherModel.getList().get(i));
-                        counter++;
-                        continue;
-                    }
-                    if (counter < 16) {
-                        day2.add(forecastWeatherModel.getList().get(i));
-                        counter++;
-                        continue;
-                    }
-                    if (counter < 24) {
-                        day3.add(forecastWeatherModel.getList().get(i));
-                        counter++;
-                        continue;
-                    }
-                    if (counter < 32) {
-                        day4.add(forecastWeatherModel.getList().get(i));
-                        counter++;
-                        continue;
-                    }
-                    if (counter < 40) {
-                        day5.add(forecastWeatherModel.getList().get(i));
-                        counter++;
-                    }
-                }
-                ForecastWeatherModel forecastWeatherModel1 = new ForecastWeatherModel();
-                forecastWeatherModel1.setList(day1);
-                daysForecastList.add(forecastWeatherModel1);
-                ForecastWeatherModel forecastWeatherModel2 = new ForecastWeatherModel();
-                forecastWeatherModel2.setList(day2);
-                daysForecastList.add(forecastWeatherModel2);
-                ForecastWeatherModel forecastWeatherModel3 = new ForecastWeatherModel();
-                forecastWeatherModel3.setList(day3);
-                daysForecastList.add(forecastWeatherModel3);
-                ForecastWeatherModel forecastWeatherModel4 = new ForecastWeatherModel();
-                forecastWeatherModel4.setList(day4);
-                daysForecastList.add(forecastWeatherModel4);
-                ForecastWeatherModel forecastWeatherModel5 = new ForecastWeatherModel();
-                forecastWeatherModel5.setList(day5);
-                daysForecastList.add(forecastWeatherModel5);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            return daysForecastList;
-        }
-
-        @Override
-        protected void onPostExecute(List<ForecastWeatherModel> result) {
-            callback.onArrayReady(result);
-        }
     }
 
 

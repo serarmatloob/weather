@@ -17,6 +17,11 @@ android {
         }
     }
 
+    testOptions {
+        unitTests.returnDefaultValues = true
+        unitTests.includeAndroidResources = true
+    }
+
     task revokeAllPermissions() {
         doLast {
             revokeAllPermissions()
@@ -82,4 +87,6 @@ dependencies {
 
     //espresso idling resource
     implementation 'androidx.test.espresso:espresso-idling-resource:' + rootProject.espressoVersion;
+
+    testImplementation 'org.robolectric:robolectric:4.3'
 }
